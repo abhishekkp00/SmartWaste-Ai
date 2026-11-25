@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────
+# SmartWaste AI — Development-only Dependencies
+# Install with: pip install -r requirements-dev.txt
+# ─────────────────────────────────────────────────────────
+
+# ── Testing ───────────────────────────────────────────────
+pytest>=7.4.0
+pytest-asyncio>=0.21.0         # Async test support
+pytest-cov>=4.1.0              # Coverage reports
+
+# ── Code Quality ──────────────────────────────────────────
+black>=23.9.0                  # Code formatter
+isort>=5.12.0                  # Import sorter
+flake8>=6.1.0                  # Linter
+
+# ── Notebook ─────────────────────────────────────────────
+jupyter>=1.0.0
+ipywidgets>=8.1.0              # Interactive widgets in Colab/Jupyter
+
+# ── Dataset download utilities ────────────────────────────
+requests>=2.31.0
+gdown>=4.7.0                   # Google Drive downloader (TrashNet)

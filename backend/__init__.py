@@ -1,0 +1,3 @@
+"""
+SmartWaste AI — backend package.
+"""

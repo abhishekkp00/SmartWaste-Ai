@@ -225,11 +225,29 @@ including `trash = 3.0982`, from training labels only. EDA and validation output
 - Validation/test: deterministic resize to 256, center crop to 224, `ToTensor`, and the same ImageNet normalization
 - Output tensor contract: `[Batch, 3, 224, 224]` with `float32` images and `int64` labels
 
-### 5. Train on Google Colab
+### 5. Run Phase 3 Custom CNN Validation
 
-Open `notebooks/01_phase1_dataset_setup.ipynb` and `notebooks/02_phase2_eda_preprocessing.ipynb` in Colab (Runtime > T4 GPU).
+```bash
+# Smoke test the Custom CNN module
+python ml/custom_cnn.py
 
-### 6. Run Backend
+# Validate architecture, gradients, freeze/unfreeze, and real batches
+python tests/validate_phase3.py
+```
+
+The Custom CNN maps `[Batch, 3, 224, 224]` inputs through five convolution blocks to 512 features and six logits:
+
+```text
+224 -> 112 -> 56 -> 28 -> 14 -> 7 -> 512 features -> 6 logits
+```
+
+The implementation is in `ml/custom_cnn.py`. It contains 4,879,206 trainable parameters and supports CPU, CUDA, feature freezing, and feature extraction for forward inspection. Model training starts in a later phase.
+
+### 6. Train on Google Colab
+
+Open `notebooks/01_phase1_dataset_setup.ipynb`, `notebooks/02_phase2_eda_preprocessing.ipynb`, and `notebooks/03_phase3_custom_cnn.ipynb` in Colab (Runtime > T4 GPU).
+
+### 7. Run Backend
 
 ```bash
 cd backend
@@ -237,7 +255,7 @@ uvicorn app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-### 7. Run Frontend
+### 8. Run Frontend
 
 ```bash
 cd frontend
@@ -306,8 +324,8 @@ SmartWaste_Ai/
 |-------|-------------|--------|
 | **1** | Architecture, dataset download, verification | ✅ Complete |
 | **2** | EDA, preprocessing transforms, Dataset class | ✅ Complete |
-| **3** | Custom CNN from scratch | ⬜ Next — awaiting approval |
-| **4** | ResNet18 + Grad-CAM | ⬜ Pending |
+| **3** | Custom CNN from scratch | ✅ Complete |
+| **4** | ResNet18 + Grad-CAM | ⬜ Next — awaiting approval |
 | **5** | Training engine (weighted loss + sampler) | ⬜ Pending |
 | **6** | Evaluation, confusion matrix, comparison | ⬜ Pending |
 | **7** | Inference engine + recommendation engine | ⬜ Pending |

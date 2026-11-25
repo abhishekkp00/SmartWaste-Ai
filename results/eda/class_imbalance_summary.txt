@@ -1,0 +1,50 @@
+============================================================
+ SmartWaste AI — Class Imbalance Analysis
+ Dataset: TrashNet (Gary Thung & Mindy Yang, Stanford)
+ Total images: 2527
+============================================================
+
+Class           Total  % of data Imbalance
+------------------------------------------------------------
+  paper           594      23.5%  ███████████
+  glass           501      19.8%  █████████
+  plastic         482      19.1%  █████████
+  metal           410      16.2%  ████████
+  cardboard       403      15.9%  ███████
+  trash           137       5.4%  ██
+
+Most frequent class  : paper  (594 images)
+Least frequent class : trash  (137 images)
+Imbalance ratio      : 4.3×
+
+OBSERVATIONS:
+  1. The 'trash' class has only ~137 images (5.4% of total).
+     This is 4.3× less than 'paper', the largest class.
+  2. Without correction, the model will bias toward larger classes
+     and have poor recall for the 'trash' category.
+
+MITIGATION STRATEGIES (both will be evaluated in Phase 5):
+  A. Weighted CrossEntropyLoss:
+     weight[c] = N / (K × n_c)
+     The 'trash' class gets ~4× higher loss weight.
+     Advantage: Sees all data equally; more stable training.
+
+  B. WeightedRandomSampler:
+     Oversamples 'trash' images so each batch has equal class counts.
+     Advantage: More gradient updates per epoch for minority class.
+     Risk: Overfitting to the 137 'trash' images.
+
+RECOMMENDATION for initial training:
+  Use weighted loss (Strategy A) as the primary approach.
+  Run a separate experiment with WeightedRandomSampler (Strategy B).
+  Compare per-class F1-scores, particularly for 'trash'.
+
+============================================================
+
+CLASS WEIGHTS (for training CrossEntropyLoss):
+  [0] cardboard     n_train= 282  weight=1.0437
+  [1] glass         n_train= 350  weight=0.8410
+  [2] metal         n_train= 287  weight=1.0256
+  [3] paper         n_train= 415  weight=0.7092
+  [4] plastic       n_train= 337  weight=0.8734
+  [5] trash         n_train=  95  weight=3.0982

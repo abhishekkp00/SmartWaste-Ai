@@ -181,11 +181,55 @@ python dataset/verify_dataset.py
 # Expected: ✅ ALL CHECKS PASSED
 ```
 
-### 4. Train on Google Colab
+### 4. Run Phase 2 EDA and Validation
 
-Open `notebooks/01_phase1_dataset_setup.ipynb` in Colab (Runtime > T4 GPU).
+```bash
+# Generate EDA charts and the class-imbalance report
+python ml/eda.py
 
-### 5. Run Backend
+# Run the complete PyTorch Phase 2 validation suite
+python tests/validate_phase2.py
+
+# Optional lightweight local checks
+python tests/validate_phase2_local.py
+```
+
+Phase 2 uses `ml/config.py` as the single source of truth for image size, ImageNet normalization values, split ratios,
+class names, and batch settings.
+
+**Actual dataset summary:**
+
+| Class | Train | Validation | Test | Total |
+|-------|------:|-----------:|-----:|------:|
+| Cardboard | 282 | 60 | 61 | 403 |
+| Glass | 350 | 75 | 76 | 501 |
+| Metal | 287 | 61 | 62 | 410 |
+| Paper | 415 | 89 | 90 | 594 |
+| Plastic | 337 | 72 | 73 | 482 |
+| Trash | 95 | 20 | 22 | 137 |
+| **Total** | **1,766** | **377** | **384** | **2,527** |
+
+The `trash` class is approximately 4.3× less represented than `paper`. Phase 2 computes inverse-frequency training weights,
+including `trash = 3.0982`, from training labels only. EDA and validation outputs are written under `results/eda/`.
+
+**DataLoader worker settings:**
+
+- Local Ubuntu or debugging: `num_workers=0`
+- Local Ubuntu with a performant dataset filesystem: `num_workers=2` or `4`
+- Google Colab: `num_workers=2` is a practical starting point
+- Set `pin_memory=True` for CUDA; the DataLoader does not gain a benefit on CPU-only runs
+
+**Preprocessing summary:**
+
+- Training: `RandomResizedCrop`, `RandomHorizontalFlip`, `RandomRotation`, `ColorJitter`, optional grayscale, `ToTensor`, and ImageNet normalization
+- Validation/test: deterministic resize to 256, center crop to 224, `ToTensor`, and the same ImageNet normalization
+- Output tensor contract: `[Batch, 3, 224, 224]` with `float32` images and `int64` labels
+
+### 5. Train on Google Colab
+
+Open `notebooks/01_phase1_dataset_setup.ipynb` and `notebooks/02_phase2_eda_preprocessing.ipynb` in Colab (Runtime > T4 GPU).
+
+### 6. Run Backend
 
 ```bash
 cd backend
@@ -193,7 +237,7 @@ uvicorn app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-### 6. Run Frontend
+### 7. Run Frontend
 
 ```bash
 cd frontend
@@ -261,8 +305,8 @@ SmartWaste_Ai/
 | Phase | Description | Status |
 |-------|-------------|--------|
 | **1** | Architecture, dataset download, verification | ✅ Complete |
-| **2** | EDA, preprocessing transforms, Dataset class | ⬜ Next |
-| **3** | Custom CNN from scratch | ⬜ Pending |
+| **2** | EDA, preprocessing transforms, Dataset class | ✅ Complete |
+| **3** | Custom CNN from scratch | ⬜ Next — awaiting approval |
 | **4** | ResNet18 + Grad-CAM | ⬜ Pending |
 | **5** | Training engine (weighted loss + sampler) | ⬜ Pending |
 | **6** | Evaluation, confusion matrix, comparison | ⬜ Pending |

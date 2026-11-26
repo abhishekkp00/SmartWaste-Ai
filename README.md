@@ -149,7 +149,7 @@ Input (3, 224, 224)
 ### 1. Clone and Set Up
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/SmartWaste_Ai.git
+git clone https://github.com/YOUR
 cd SmartWaste_Ai
 
 # Create virtual environment
@@ -243,11 +243,28 @@ The Custom CNN maps `[Batch, 3, 224, 224]` inputs through five convolution block
 
 The implementation is in `ml/custom_cnn.py`. It contains 4,879,206 trainable parameters and supports CPU, CUDA, feature freezing, and feature extraction for forward inspection. Model training starts in a later phase.
 
-### 6. Train on Google Colab
+### 6. Run Phase 4 ResNet18 and Grad-CAM Validation
 
-Open `notebooks/01_phase1_dataset_setup.ipynb`, `notebooks/02_phase2_eda_preprocessing.ipynb`, and `notebooks/03_phase3_custom_cnn.ipynb` in Colab (Runtime > T4 GPU).
+```bash
+# Smoke test Stage A and Stage B
+python ml/resnet_model.py
 
-### 7. Run Backend
+# Validate architecture freezing, real batches, and Grad-CAM
+python tests/validate_phase4.py
+```
+
+Phase 4 provides two transfer-learning configurations:
+
+- **Stage A**: pretrained ResNet18 backbone frozen; only the six-class classifier head is trainable.
+- **Stage B**: `layer3`, `layer4`, and the classifier head are trainable; `layer1` and `layer2` remain frozen.
+
+Grad-CAM is generated from `backbone.layer4[-1]` and saved to `results/eda/phase4_gradcam_heatmap.png`. Model training remains in Phase 5.
+
+### 7. Train on Google Colab
+
+Open `notebooks/01_phase1_dataset_setup.ipynb`, `notebooks/02_phase2_eda_preprocessing.ipynb`, `notebooks/03_phase3_custom_cnn.ipynb`, and `notebooks/04_phase4_resnet_gradcam.ipynb` in Colab.
+
+### 8. Run Backend
 
 ```bash
 cd backend
@@ -255,7 +272,7 @@ uvicorn app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-### 8. Run Frontend
+### 9. Run Frontend
 
 ```bash
 cd frontend
@@ -325,8 +342,8 @@ SmartWaste_Ai/
 | **1** | Architecture, dataset download, verification | ✅ Complete |
 | **2** | EDA, preprocessing transforms, Dataset class | ✅ Complete |
 | **3** | Custom CNN from scratch | ✅ Complete |
-| **4** | ResNet18 + Grad-CAM | ⬜ Next — awaiting approval |
-| **5** | Training engine (weighted loss + sampler) | ⬜ Pending |
+| **4** | ResNet18 + Grad-CAM | ✅ Complete |
+| **5** | Training engine (weighted loss + sampler) | ⬜ Next — awaiting approval |
 | **6** | Evaluation, confusion matrix, comparison | ⬜ Pending |
 | **7** | Inference engine + recommendation engine | ⬜ Pending |
 | **8** | FastAPI backend + all REST endpoints | ⬜ Pending |
@@ -348,7 +365,7 @@ SmartWaste_Ai/
 | Database | SQLite (async via aiosqlite + SQLAlchemy 2.0) |
 | Validation | Pydantic v2 |
 | Frontend | React 18, Vite 5, Tailwind CSS 3, Recharts, Axios |
-| Testing | pytest, pytest-asyncio, httpx |
+| Testing | pytest
 | Deployment | Docker, Docker Compose (Phase 10) |
 
 ---

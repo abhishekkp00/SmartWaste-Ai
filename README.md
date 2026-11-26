@@ -322,9 +322,10 @@ Open all available phase notebooks from `01_phase1_dataset_setup.ipynb` through 
 ### 12. Run Backend
 
 ```bash
-cd backend
-uvicorn app.main:app --reload --port 8000
+# Run from the repository root (not from backend/)
+python -m uvicorn backend.app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
+# Health:  http://localhost:8000/api/health
 ```
 
 ### 13. Run Frontend
@@ -337,6 +338,20 @@ npm run dev
 ```
 
 ---
+
+### 14. Launch the React Dashboard
+
+Open a second terminal from the repository root:
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+# Dashboard: http://localhost:5173
+```
+
+The dashboard connects to `http://localhost:8000` by default. Set `VITE_API_BASE_URL` in `frontend/.env` if the API runs elsewhere. The backend health endpoint reports whether trained model checkpoints are present. Predictions are disabled until a real trained checkpoint is available in `models/`; random untrained model weights are never presented as predictions.
 
 ## 📁 Project Structure
 
@@ -403,7 +418,7 @@ SmartWaste_Ai/
 | **6** | Evaluation, confusion matrix, comparison | ✅ Complete |
 | **7** | Inference engine + recommendation engine | ✅ Complete |
 | **8** | FastAPI backend + all REST endpoints | ✅ Complete |
-| **9** | React frontend dashboard | ⬜ Next — awaiting approval |
+| **9** | React frontend dashboard + API integration | ✅ Implemented — local smoke test pending |
 | **10** | Tests, Docker, documentation | ⬜ Pending |
 
 ---
@@ -420,7 +435,7 @@ SmartWaste_Ai/
 | Backend | FastAPI, Uvicorn |
 | Database | SQLite (async via aiosqlite + SQLAlchemy 2.0) |
 | Validation | Pydantic v2 |
-| Frontend | React 18, Vite 5, Tailwind CSS 3, Recharts, Axios |
+| Frontend | React, Vite, responsive CSS, Recharts, Axios |
 | Testing | pytest
 | Deployment | Docker, Docker Compose (Phase 10) |
 

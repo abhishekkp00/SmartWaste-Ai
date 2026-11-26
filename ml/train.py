@@ -178,7 +178,7 @@ class Trainer:
             "best_val_acc": self.best_val_acc,
             "val_metrics": val_metrics,
             "history": self.history,
-            "torch_version": torch.__version__,
+            "torch_version": str(torch.__version__),
         }
         torch.save(checkpoint, self.checkpoint_path)
         print(f"Best checkpoint saved -> {self.checkpoint_path}")

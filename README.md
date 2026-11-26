@@ -271,11 +271,27 @@ The reusable engine is implemented in `ml/train.py` and `ml/metrics.py`. It supp
 
 This phase validates the engine only; actual 30/15-epoch experiments remain separate model-training work.
 
-### 8. Train on Google Colab
+### 8. Run Phase 6 Evaluation Validation
 
-Open `notebooks/01_phase1_dataset_setup.ipynb`, `notebooks/02_phase2_eda_preprocessing.ipynb`, `notebooks/03_phase3_custom_cnn.ipynb`, `notebooks/04_phase4_resnet_gradcam.ipynb`, and `notebooks/05_phase5_training_engine.ipynb` in Colab.
+```bash
+python tests/validate_phase6.py
+```
 
-### 9. Run Backend
+Phase 6 evaluation utilities are implemented in `ml/evaluate.py`. They provide test-set inference, macro and per-class metrics, confusion matrices, JSON reports, training-history plots, and model-comparison plots.
+
+Generated validation artifacts include:
+
+- `results/confusion_matrix/phase6_validation_confusion_matrix.png`
+- `results/confusion_matrix/phase6_validation_counts.png`
+- `results/reports/phase6_validation_report.json`
+- `results/graphs/training_history.png`
+- `results/graphs/model_comparison.png`
+
+### 9. Train on Google Colab
+
+Open all available phase notebooks from `01_phase1_dataset_setup.ipynb` through `06_phase6_evaluation.ipynb` in Colab.
+
+### 10. Run Backend
 
 ```bash
 cd backend
@@ -283,7 +299,7 @@ uvicorn app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-### 10. Run Frontend
+### 11. Run Frontend
 
 ```bash
 cd frontend
@@ -355,8 +371,8 @@ SmartWaste_Ai/
 | **3** | Custom CNN from scratch | ✅ Complete |
 | **4** | ResNet18 + Grad-CAM | ✅ Complete |
 | **5** | Training engine (weighted loss + sampler) | ✅ Complete |
-| **6** | Evaluation, confusion matrix, comparison | ⬜ Next — awaiting approval |
-| **7** | Inference engine + recommendation engine | ⬜ Pending |
+| **6** | Evaluation, confusion matrix, comparison | ✅ Complete |
+| **7** | Inference engine + recommendation engine | ⬜ Next — awaiting approval |
 | **8** | FastAPI backend + all REST endpoints | ⬜ Pending |
 | **9** | React frontend dashboard | ⬜ Pending |
 | **10** | Tests, Docker, documentation | ⬜ Pending |

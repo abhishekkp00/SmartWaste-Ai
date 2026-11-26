@@ -300,11 +300,26 @@ Phase 7 introduces `ml/predict.py`, a reusable `WastePredictor` inference engine
 - low-confidence warning when below `cfg.inference.CONFIDENCE_THRESHOLD`
 - class-wise recycling recommendation lookup for all six TrashNet classes
 
-### 10. Train on Google Colab
+### 10. Run Phase 8 Backend Validation
+
+```bash
+python tests/validate_phase8.py
+```
+
+Phase 8 implements the FastAPI backend in `backend/app/main.py` with production-ready route groups:
+
+- `GET /api/health`
+- `POST /api/predict`
+- `POST /api/predict/batch`
+- `GET /api/analytics`
+
+It includes async SQLite logging (`prediction_logs`) and aggregate analytics for recent predictions.
+
+### 11. Train on Google Colab
 
 Open all available phase notebooks from `01_phase1_dataset_setup.ipynb` through `07_phase7_inference_engine.ipynb` in Colab.
 
-### 11. Run Backend
+### 12. Run Backend
 
 ```bash
 cd backend
@@ -312,7 +327,7 @@ uvicorn app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-### 12. Run Frontend
+### 13. Run Frontend
 
 ```bash
 cd frontend
@@ -359,7 +374,7 @@ SmartWaste_Ai/
 │   ├── main.py                 # FastAPI application (Phase 8)
 │   ├── routes/                 # predict, batch, analytics, health
 │   ├── schemas/                # Pydantic request/response models
-│   ├── services/               # ModelService (singleton), Recommendation
+│   ├── services/               # ModelService (singleton), analytics service
 │   ├── database/               # SQLAlchemy ORM, CRUD, session
 │   └── utils/                  # Image validation, logging
 │
@@ -387,8 +402,8 @@ SmartWaste_Ai/
 | **5** | Training engine (weighted loss + sampler) | ✅ Complete |
 | **6** | Evaluation, confusion matrix, comparison | ✅ Complete |
 | **7** | Inference engine + recommendation engine | ✅ Complete |
-| **8** | FastAPI backend + all REST endpoints | ⬜ Next — awaiting approval |
-| **9** | React frontend dashboard | ⬜ Pending |
+| **8** | FastAPI backend + all REST endpoints | ✅ Complete |
+| **9** | React frontend dashboard | ⬜ Next — awaiting approval |
 | **10** | Tests, Docker, documentation | ⬜ Pending |
 
 ---

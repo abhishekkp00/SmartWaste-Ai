@@ -33,8 +33,8 @@ SmartWaste AI uses computer vision and deep learning to automatically classify w
 - Custom CNN architecture built from scratch using PyTorch
 - ResNet18 transfer learning (frozen + fine-tuned comparison)
 - Grad-CAM explainability heatmaps
-- FastAPI REST backend with batch inference
-- React + Vite + Tailwind CSS dashboard
+- FastAPI REST backend with checkpoint-aware single and batch inference
+- React + Vite responsive dashboard with live API integration
 - Prediction history with SQLite storage
 - Complete training pipeline with early stopping and checkpointing
 
@@ -338,20 +338,6 @@ npm run dev
 ```
 
 ---
-
-### 14. Launch the React Dashboard
-
-Open a second terminal from the repository root:
-
-```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
-# Dashboard: http://localhost:5173
-```
-
-The dashboard connects to `http://localhost:8000` by default. Set `VITE_API_BASE_URL` in `frontend/.env` if the API runs elsewhere. The backend health endpoint reports whether trained model checkpoints are present. Predictions are disabled until a real trained checkpoint is available in `models/`; random untrained model weights are never presented as predictions.
 
 ## 📁 Project Structure
 

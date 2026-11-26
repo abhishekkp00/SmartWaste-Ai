@@ -22,13 +22,13 @@ function App(){
  const recent=analytics?.recent_predictions||[];
  return <div className="shell">
   <aside className="sidebar"><div className="brand"><div className="logo">S</div><div><b>SmartWaste</b><small>AI • WASTE INTELLIGENCE</small></div></div><div className="navlabel">WORKSPACE</div><a className="active">◫ &nbsp; Overview</a><a href="#classify">◎ &nbsp; Classify waste</a><a href="#analytics">▥ &nbsp; Analytics</a><a href="#history">◷ &nbsp; History</a><div className="sidebottom"><div className="avatar">SW</div><div><b>SmartWaste AI</b><small>Computer vision platform</small></div></div></aside>
-  <main className="main"><header><div><div className="eyebrow">WASTE INTELLIGENCE PLATFORM</div><h1>Overview</h1><p>Monitor waste classification and turn images into actionable recycling guidance.</p></div><div className="status"><i className={apiOnline?"online":"offline"}></i>{apiOnline?(modelReady?"API + MODEL READY":"API ONLINE • CHECKPOINT MISSING"):"API OFFLINE"}</div></header>
+  <main className="main"><header><div><div className="eyebrow">WASTE INTELLIGENCE PLATFORM</div><h1>Overview</h1><p>Monitor waste classification and turn images into actionable recycling guidance.</p></div><div className="status"><i className={apiOnline?"online":"offline"}></i>{apiOnline?(modelReady?"API + WEIGHTS FOUND":"API ONLINE • CHECKPOINT MISSING"):"API OFFLINE"}</div></header>
   <section className="hero"><div><div className="eyebrow light">SMARTER SEGREGATION STARTS HERE</div><h2>Make every piece<br/>of waste count.</h2><p>AI-powered visual classification for a cleaner, more circular future.</p><a className="heroBtn" href="#classify">Classify an image <span>↗</span></a></div><div className="heroArt"><div className="orbit orbit1"></div><div className="orbit orbit2"></div><div className="leaf">♻</div><div className="heroTag">VISION • SORT • RECYCLE</div></div></section>
   <section className="cards">
    <Metric label="Dataset images" value="2,527" note="TrashNet benchmark samples" icon="▧"/>
    <Metric label="Images analyzed" value={stats.total_predictions??0} note="Saved prediction records" icon="◉"/>
    <Metric label="Average confidence" value={stats.total_predictions?((stats.average_confidence||0)*100).toFixed(1)+"%":"—"} note="Across recorded predictions" icon="△"/>
-   <Metric label="Model status" value={modelReady?"READY":apiOnline?"SETUP":"OFFLINE"} note={modelReady?"Trained checkpoint detected":"Checkpoint required for inference"} icon="▦"/>
+   <Metric label="Model status" value={modelReady?"WEIGHTS FOUND":apiOnline?"SETUP":"OFFLINE"} note={modelReady?"Checkpoint present; inference load tested on request":"Checkpoint required for inference"} icon="▦"/>
   </section>
   <section className="grid two" id="classify">
    <div className="panel classify"><div className="panelHead"><div><div className="eyebrow">IMAGE ANALYSIS</div><h3>Classify your waste</h3></div><span className="pill">PyTorch inference</span></div>

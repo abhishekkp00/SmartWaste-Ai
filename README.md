@@ -260,11 +260,22 @@ Phase 4 provides two transfer-learning configurations:
 
 Grad-CAM is generated from `backbone.layer4[-1]` and saved to `results/eda/phase4_gradcam_heatmap.png`. Model training remains in Phase 5.
 
-### 7. Train on Google Colab
+### 7. Run Phase 5 Training Engine Validation
 
-Open `notebooks/01_phase1_dataset_setup.ipynb`, `notebooks/02_phase2_eda_preprocessing.ipynb`, `notebooks/03_phase3_custom_cnn.ipynb`, and `notebooks/04_phase4_resnet_gradcam.ipynb` in Colab.
+```bash
+# Run metrics and training-engine CPU smoke validation
+python tests/validate_phase5.py
+```
 
-### 8. Run Backend
+The reusable engine is implemented in `ml/train.py` and `ml/metrics.py`. It supports weighted `CrossEntropyLoss`, optional `WeightedRandomSampler`, AdamW, cosine scheduling, early stopping, best-checkpoint saving, and training history.
+
+This phase validates the engine only; actual 30/15-epoch experiments remain separate model-training work.
+
+### 8. Train on Google Colab
+
+Open `notebooks/01_phase1_dataset_setup.ipynb`, `notebooks/02_phase2_eda_preprocessing.ipynb`, `notebooks/03_phase3_custom_cnn.ipynb`, `notebooks/04_phase4_resnet_gradcam.ipynb`, and `notebooks/05_phase5_training_engine.ipynb` in Colab.
+
+### 9. Run Backend
 
 ```bash
 cd backend
@@ -272,7 +283,7 @@ uvicorn app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-### 9. Run Frontend
+### 10. Run Frontend
 
 ```bash
 cd frontend
@@ -343,8 +354,8 @@ SmartWaste_Ai/
 | **2** | EDA, preprocessing transforms, Dataset class | ✅ Complete |
 | **3** | Custom CNN from scratch | ✅ Complete |
 | **4** | ResNet18 + Grad-CAM | ✅ Complete |
-| **5** | Training engine (weighted loss + sampler) | ⬜ Next — awaiting approval |
-| **6** | Evaluation, confusion matrix, comparison | ⬜ Pending |
+| **5** | Training engine (weighted loss + sampler) | ✅ Complete |
+| **6** | Evaluation, confusion matrix, comparison | ⬜ Next — awaiting approval |
 | **7** | Inference engine + recommendation engine | ⬜ Pending |
 | **8** | FastAPI backend + all REST endpoints | ⬜ Pending |
 | **9** | React frontend dashboard | ⬜ Pending |

@@ -47,6 +47,8 @@ class HealthResponseSchema(BaseModel):
     app_name: str = "SmartWaste AI API"
     version: str = "0.1.0"
     model_cache_size: int
+    model_ready: bool
+    available_models: List[str] = Field(default_factory=list)
     supported_classes: List[str]
 
 

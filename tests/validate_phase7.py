@@ -107,6 +107,20 @@ def main() -> int:
         torch.save({"model_state_dict": model.state_dict(), "epoch": 1}, temp_wrapped_path)
         loaded_raw.load_checkpoint(temp_wrapped_path)
         record("Wrapped checkpoint load", True)
+
+        # Regression: older checkpoints stored torch.__version__ as a
+        # TorchVersion object, which PyTorch 2.6's weights-only loader
+        # rejects unless the metadata class is explicitly allowlisted.
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "epoch": 1,
+                "torch_version": torch.__version__,
+            },
+            temp_wrapped_path,
+        )
+        loaded_raw.load_checkpoint(temp_wrapped_path)
+        record("Legacy TorchVersion metadata checkpoint load", True)
     except Exception as exc:
         record("Checkpoint loading", False, str(exc))
     finally:

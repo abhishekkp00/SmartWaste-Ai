@@ -132,7 +132,31 @@ class WastePredictor:
         if not checkpoint_path.exists():
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
-        checkpoint = torch.load(checkpoint_path, map_location="cpu")
+        # PyTorch 2.6 defaults to weights_only=True. Older checkpoints created
+        # by this project stored torch.__version__ as a TorchVersion object.
+        # Explicitly allowlist that metadata class while keeping restricted
+        # weights-only deserialization enabled.
+        try:
+            from torch.torch_version import TorchVersion
+
+            torch.serialization.add_safe_globals([TorchVersion])
+        except (ImportError, AttributeError):
+            # Older PyTorch releases may not expose this helper; their
+            # torch.load defaults predate the PyTorch 2.6 weights-only change.
+            pass
+
+        try:
+            checkpoint = torch.load(
+                checkpoint_path,
+                map_location="cpu",
+                weights_only=True,
+            )
+        except TypeError as exc:
+            # Compatibility with PyTorch versions that do not accept
+            # the weights_only keyword (project-generated local checkpoints).
+            if "weights_only" not in str(exc):
+                raise
+            checkpoint = torch.load(checkpoint_path, map_location="cpu")
 
         if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
             state_dict = checkpoint["model_state_dict"]

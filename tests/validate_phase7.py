@@ -1,14 +1,13 @@
 """
 tests/validate_phase7.py
 ─────────────────────────────────────────────────────────────────────────────
-Phase 7 validation for image inference and recycling recommendations.
+Phase 7 validation — Inference engine and recommendation logic.
 """
 
 import sys
 from pathlib import Path
 from typing import List, Tuple
 
-import numpy as np
 import torch
 from PIL import Image
 
@@ -16,8 +15,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from ml.config import cfg
-from ml.predict import WastePredictor
-from ml.recommendations import get_recommendation
+from ml.custom_cnn import build_custom_cnn
+from ml.predict import RECYCLING_RECOMMENDATIONS, WastePredictor
 
 RESULTS: List[Tuple[str, bool, str]] = []
 
@@ -32,72 +31,97 @@ def section(title: str) -> None:
     print(f"\n{'─' * 60}\n {title}\n{'─' * 60}")
 
 
+def synthetic_image() -> Image.Image:
+    return Image.new("RGB", (320, 240), color=(120, 180, 70))
+
+
 def main() -> int:
-    section("1. Predictor Construction")
+    section("1. Recommendation Mapping")
+    record("6 recommendation entries", len(RECYCLING_RECOMMENDATIONS) == cfg.NUM_CLASSES)
+    record(
+        "All classes covered",
+        set(RECYCLING_RECOMMENDATIONS.keys()) == set(cfg.CLASS_NAMES),
+        f"covered={sorted(RECYCLING_RECOMMENDATIONS.keys())}",
+    )
+
+    section("2. Predictor Setup + Preprocessing")
     try:
-        predictor = WastePredictor(device=torch.device("cpu"), top_k=3)
-        record("Predictor device is CPU", predictor.device.type == "cpu")
-        record("Top-k is config-compatible", predictor.top_k == cfg.inference.TOP_K,
-               f"got {predictor.top_k}")
-        record("Transform output contract", predictor.transform(torch.zeros((224, 224, 3), dtype=torch.uint8)).shape == torch.Size([3, 224, 224]))
+        predictor = WastePredictor(
+            model_name="custom_cnn",
+            device=torch.device("cpu"),
+            confidence_threshold=0.0,
+            top_k=3,
+        )
+        batch = predictor.preprocess(synthetic_image())
+        record("Preprocess shape", tuple(batch.shape) == (1, 3, 224, 224), f"got {tuple(batch.shape)}")
+        record("Preprocess dtype", batch.dtype == torch.float32, f"got {batch.dtype}")
     except Exception as exc:
-        record("Predictor construction", False, str(exc))
+        record("Predictor setup", False, str(exc))
         return print_summary()
 
-    section("2. Single-Image Inference")
+    section("3. Single Inference")
     try:
-        rng = np.random.default_rng(42)
-        array = (rng.random((320, 480, 3)) * 255).astype(np.uint8)
-        image = Image.fromarray(array, mode="RGB")
+        result = predictor.predict(synthetic_image())
+        record("Predicted class valid", result["class_name"] in cfg.CLASS_NAMES, result["class_name"])
+        record("Top-k length", len(result["top_k"]) == 3, f"got {len(result['top_k'])}")
 
-        result = predictor.predict(image)
-        record("Top-level class name", result["class_name"] in cfg.CLASS_NAMES,
-               f"got {result['class_name']}")
-        record("Predicted index range", 0 <= result["class_index"] < cfg.NUM_CLASSES,
-               f"got {result['class_index']}")
-        record("Confidence range", 0.0 <= result["confidence"] <= 1.0,
-               f"got {result['confidence']:.4f}")
-        record("Top-k count", len(result["top_k"]) == 3,
-               f"got {len(result['top_k'])}")
-        record("Top-k probabilities sorted", all(
-            result["top_k"][i]["probability"] >= result["top_k"][i + 1]["probability"]
-            for i in range(len(result["top_k"])-1)
-        ))
-        record("Threshold used", result["threshold"] == cfg.inference.CONFIDENCE_THRESHOLD)
-        record("Uncertainty flag consistent", result["is_uncertain"] == (result["confidence"] < cfg.inference.CONFIDENCE_THRESHOLD))
+        confidences = [item["confidence"] for item in result["top_k"]]
+        non_increasing = all(a >= b for a, b in zip(confidences, confidences[1:]))
+        record("Top-k sorted by confidence", non_increasing, str(confidences))
+
+        recommendation = result["recommendation"]
+        record("Recommendation has disposal_bin", "disposal_bin" in recommendation)
+        record("Recommendation has prep", "prep" in recommendation)
     except Exception as exc:
-        record("Single-image inference", False, str(exc))
+        record("Single inference", False, str(exc))
 
-    section("3. Batch Inference")
+    section("4. Confidence Threshold Warning")
     try:
-        images = [
-            Image.fromarray(np.zeros((224, 224, 3), dtype=np.uint8), mode="RGB"),
-            Image.fromarray(np.full((224, 224, 3), 255, dtype=np.uint8), mode="RGB"),
-        ]
-        results = predictor.predict_batch(images)
-        record("Batch result count", len(results) == 2, f"got {len(results)}")
-        record("Batch confidence fields", all("confidence" in result for result in results))
-        record("Batch top-k fields", all(len(result["top_k"]) == 3 for result in results))
+        strict_predictor = WastePredictor(
+            model_name="custom_cnn",
+            device=torch.device("cpu"),
+            confidence_threshold=0.9999,
+            top_k=2,
+        )
+        strict_result = strict_predictor.predict(synthetic_image())
+        record("Low-confidence warning emitted", strict_result["warning"] is not None)
+        record("Low-confidence flag false", strict_result["is_confident"] is False)
+    except Exception as exc:
+        record("Confidence warning", False, str(exc))
+
+    section("5. Checkpoint Loading")
+    temp_state_path = cfg.paths.models_dir / "phase7_temp_state_dict.pth"
+    temp_wrapped_path = cfg.paths.models_dir / "phase7_temp_wrapped_checkpoint.pth"
+    try:
+        cfg.paths.models_dir.mkdir(parents=True, exist_ok=True)
+        model = build_custom_cnn()
+
+        torch.save(model.state_dict(), temp_state_path)
+        loaded_raw = WastePredictor(
+            model_name="custom_cnn",
+            checkpoint_path=temp_state_path,
+            device=torch.device("cpu"),
+        )
+        record("Raw state_dict load", loaded_raw.model is not None)
+
+        torch.save({"model_state_dict": model.state_dict(), "epoch": 1}, temp_wrapped_path)
+        loaded_raw.load_checkpoint(temp_wrapped_path)
+        record("Wrapped checkpoint load", True)
+    except Exception as exc:
+        record("Checkpoint loading", False, str(exc))
+    finally:
+        if temp_state_path.exists():
+            temp_state_path.unlink()
+        if temp_wrapped_path.exists():
+            temp_wrapped_path.unlink()
+
+    section("6. Batch Inference")
+    try:
+        outputs = predictor.predict_batch([synthetic_image(), synthetic_image()], top_k=2)
+        record("Batch output length", len(outputs) == 2, f"got {len(outputs)}")
+        record("Batch top-k length respected", all(len(item["top_k"]) == 2 for item in outputs))
     except Exception as exc:
         record("Batch inference", False, str(exc))
-
-    section("4. Recycling Recommendations")
-    try:
-        for class_name in cfg.CLASS_NAMES:
-            recommendation = get_recommendation(class_name, confidence=0.80)
-            record(f"Recommendation for {class_name}", recommendation["class_name"] == class_name)
-
-        uncertain = get_recommendation("plastic", confidence=0.40)
-        record("Low confidence warning", uncertain["is_uncertain"] is True)
-        record("Warning text present", bool(uncertain["warning"]))
-
-        try:
-            get_recommendation("unknown", confidence=0.90)
-            record("Unknown class guard", False, "recommendation did not raise")
-        except ValueError:
-            record("Unknown class guard", True)
-    except Exception as exc:
-        record("Recommendation validation", False, str(exc))
 
     return print_summary()
 

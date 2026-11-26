@@ -287,11 +287,24 @@ Generated validation artifacts include:
 - `results/graphs/training_history.png`
 - `results/graphs/model_comparison.png`
 
-### 9. Train on Google Colab
+### 9. Run Phase 7 Inference Validation
 
-Open all available phase notebooks from `01_phase1_dataset_setup.ipynb` through `06_phase6_evaluation.ipynb` in Colab.
+```bash
+python tests/validate_phase7.py
+```
 
-### 10. Run Backend
+Phase 7 introduces `ml/predict.py`, a reusable `WastePredictor` inference engine with:
+
+- model loading (`custom_cnn`, `resnet18_stage_a`, `resnet18_stage_b`)
+- top-k prediction output with calibrated confidence scores
+- low-confidence warning when below `cfg.inference.CONFIDENCE_THRESHOLD`
+- class-wise recycling recommendation lookup for all six TrashNet classes
+
+### 10. Train on Google Colab
+
+Open all available phase notebooks from `01_phase1_dataset_setup.ipynb` through `07_phase7_inference_engine.ipynb` in Colab.
+
+### 11. Run Backend
 
 ```bash
 cd backend
@@ -299,7 +312,7 @@ uvicorn app.main:app --reload --port 8000
 # API docs: http://localhost:8000/docs
 ```
 
-### 11. Run Frontend
+### 12. Run Frontend
 
 ```bash
 cd frontend
@@ -335,7 +348,8 @@ SmartWaste_Ai/
 │   ├── train.py                # Trainer class + training loop (Phase 5)
 │   ├── metrics.py              # Accuracy, precision, recall, F1 (Phase 5)
 │   ├── evaluate.py             # Evaluation + plots (Phase 6)
-│   └── predict.py              # WastePredictor inference engine (Phase 7)
+│   ├── predict.py              # WastePredictor inference engine (Phase 7)
+│   └── recommendations.py      # Rule-based disposal guidance (Phase 7)
 │
 ├── models/                     # Saved .pth checkpoints (gitignored)
 ├── results/                    # Training graphs, confusion matrices, reports
@@ -372,8 +386,8 @@ SmartWaste_Ai/
 | **4** | ResNet18 + Grad-CAM | ✅ Complete |
 | **5** | Training engine (weighted loss + sampler) | ✅ Complete |
 | **6** | Evaluation, confusion matrix, comparison | ✅ Complete |
-| **7** | Inference engine + recommendation engine | ⬜ Next — awaiting approval |
-| **8** | FastAPI backend + all REST endpoints | ⬜ Pending |
+| **7** | Inference engine + recommendation engine | ✅ Complete |
+| **8** | FastAPI backend + all REST endpoints | ⬜ Next — awaiting approval |
 | **9** | React frontend dashboard | ⬜ Pending |
 | **10** | Tests, Docker, documentation | ⬜ Pending |
 

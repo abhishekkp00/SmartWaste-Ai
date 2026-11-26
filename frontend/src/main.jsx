@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import axios from "axios";
 import "./style.css";
 
@@ -11,6 +11,7 @@ const COLORS = ["#d6a56b","#8da7c7","#a7b5c4","#83b6a1","#6aa9c5","#9a8d87"];
 
 function App(){
  const [health,setHealth]=useState(null),[analytics,setAnalytics]=useState(null),[file,setFile]=useState(null),[preview,setPreview]=useState(""),[result,setResult]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[apiOnline,setApiOnline]=useState(false),[model,setModel]=useState("resnet18_stage_b");
+ const modelReady=(health?.available_models||[]).includes(model);
  const refresh=async()=>{try{const [h,a]=await Promise.all([axios.get(API+"/api/health"),axios.get(API+"/api/analytics?limit=8")]);setHealth(h.data);setAnalytics(a.data);setApiOnline(true);const ready=h.data.available_models||[];if(ready.length&&!ready.includes(model))setModel(ready[0])}catch(e){setApiOnline(false);setError("Backend is not reachable. Start FastAPI on port 8000 to enable live classification and analytics.")}};
  useEffect(()=>{refresh();const id=setInterval(refresh,10000);return()=>clearInterval(id)},[]);
  const counts=analytics?.summary?.class_distribution||{};
